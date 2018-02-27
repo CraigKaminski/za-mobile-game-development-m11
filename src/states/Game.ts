@@ -1,10 +1,10 @@
 export class Game extends Phaser.State {
-  public preload() {
-    this.game.load.image('logo', 'images/phaser.png');
+  public init() {
+    this.game.physics.arcade.gravity.y = 0;
   }
 
   public create() {
-    const logo = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'logo');
-    logo.anchor.setTo(0.5, 0.5);
+    const background = this.add.tileSprite(0, 0, 1200, 800, 'grass');
+    this.world.setBounds(0, 0, 1200, 800);
   }
 }
