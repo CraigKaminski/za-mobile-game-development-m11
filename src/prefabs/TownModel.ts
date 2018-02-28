@@ -22,20 +22,20 @@ const DefaultCoefs: ICoefs = {
   foodConsumpotion: 5,
   populationGrowth: 1.02,
   productivityPerPerson: 0.5,
-}
+};
 
 export class TownModel {
-  private buildings: any[];
+  private buildings: IBuilding[];
   private coefs: ICoefs;
   private stats: IStats;
 
-  constructor(coefs: ICoefs = DefaultCoefs, initialStats: IStats, buildings: any[]) {
+  constructor(coefs: ICoefs = DefaultCoefs, initialStats: IStats, buildings: IBuilding[]) {
     this.buildings = buildings;
     this.coefs = {...coefs};
     this.stats = {...initialStats};
   }
 
-  private step() {
+  public step() {
     this.updateBuildingProduction();
 
     this.stats.population *= this.coefs.populationGrowth;
@@ -48,7 +48,9 @@ export class TownModel {
       this.stats.food = 0;
     }
 
-    this.stats.money = Math.min(this.stats.population, this.stats.jobs);
+    this.stats.money += Math.min(this.stats.population, this.stats.jobs) * this.coefs.productivityPerPerson;
+
+    // console.log(this.stats);
   }
 
   private updateBuildingProduction() {
