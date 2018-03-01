@@ -1,8 +1,4 @@
-interface IBuilding {
-  food?: number;
-  housing?: number;
-  jobs?: number;
-}
+import { Building } from './Building';
 
 interface ICoefs {
   foodConsumpotion: number;
@@ -19,20 +15,20 @@ interface IStats {
 }
 
 const DefaultCoefs: ICoefs = {
-  foodConsumpotion: 5,
+  foodConsumpotion: 1,
   populationGrowth: 1.02,
   productivityPerPerson: 0.5,
 };
 
 export class TownModel {
-  private buildings: IBuilding[];
+  private buildings: Phaser.Group;
   private coefs: ICoefs;
   private stats: IStats;
 
-  constructor(coefs: ICoefs = DefaultCoefs, initialStats: IStats, buildings: IBuilding[]) {
+  constructor(coefs: ICoefs = DefaultCoefs, initialStats: IStats, buildings: Phaser.Group) {
     this.buildings = buildings;
-    this.coefs = {...coefs};
-    this.stats = {...initialStats};
+    this.coefs = { ...coefs };
+    this.stats = { ...initialStats };
   }
 
   public step() {
@@ -50,17 +46,16 @@ export class TownModel {
 
     this.stats.money += Math.min(this.stats.population, this.stats.jobs) * this.coefs.productivityPerPerson;
 
-    // console.log(this.stats);
+    console.log(this.stats);
   }
 
   private updateBuildingProduction() {
-    this.stats = this.buildings.reduce((totalStats: IStats, building: IBuilding) => {
-      return {
-        ...totalStats,
-        food: building.food ? totalStats.food + building.food : totalStats.food,
-        housing: building.housing ? totalStats.housing + building.housing : totalStats.housing,
-        jobs: building.jobs ? totalStats.jobs + building.jobs : totalStats.jobs,
-      };
-    }, {...this.stats, housing: 0, jobs: 0});
+    const stats = { ...this.stats, housing: 0, jobs: 0 };
+    this.buildings.forEach((building: Building) => {
+      stats.food += building.food ? building.food : 0;
+      stats.housing += building.housing ? building.housing : 0;
+      stats.jobs += building.jobs ? building.jobs : 0;
+    });
+    this.stats = stats;
   }
 }
