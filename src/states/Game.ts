@@ -3,13 +3,22 @@ import { TownModel } from '../prefabs/TownModel';
 
 const Step = 2;
 
+interface IPoint {
+  x: number;
+  y: number;
+}
+
 export class Game extends Phaser.State {
   private buildings: Phaser.Group;
+  private endDragPoint: IPoint;
   private foodLabel: Phaser.Text;
+  private isDraggingMap = false;
+  private isDraggingMapBlocked = false;
   private jobsLabel: Phaser.Text;
   private moneyLabel: Phaser.Text;
   private populationLabel: Phaser.Text;
   private simulationTimer: Phaser.TimerEvent;
+  private startDragPoint: IPoint;
   private town: TownModel;
 
   public init() {
@@ -49,6 +58,32 @@ export class Game extends Phaser.State {
     this.simulationTimer = this.time.events.loop(Phaser.Timer.SECOND * Step, this.simulationStep, this);
 
     this.initGui();
+  }
+
+  public update() {
+    if (!this.isDraggingMapBlocked) {
+      if (!this.isDraggingMap) {
+        if (this.input.activePointer.isDown) {
+          this.isDraggingMap = true;
+
+          const {x, y} = this.input.activePointer.position;
+          this.startDragPoint = {x, y};
+        }
+      } else {
+        let {x, y} = this.input.activePointer.position;
+        this.endDragPoint = {x, y};
+
+        this.camera.x += this.startDragPoint.x - this.endDragPoint.x;
+        this.camera.y += this.startDragPoint.y - this.endDragPoint.y;
+
+        ({x, y} = this.input.activePointer.position);
+        this.startDragPoint = {x, y};
+
+        if (this.input.activePointer.isUp) {
+          this.isDraggingMap = false;
+        }
+      }
+    }
   }
 
   private initGui() {
