@@ -3,6 +3,13 @@ import { TownModel } from '../prefabs/TownModel';
 
 const Step = 2;
 
+interface IButtonData {
+  btnAsset: string;
+  cost: number;
+  asset: string;
+  jobs: number;
+}
+
 interface IPoint {
   x: number;
   y: number;
@@ -10,6 +17,7 @@ interface IPoint {
 
 export class Game extends Phaser.State {
   private buildings: Phaser.Group;
+  private buttons: Phaser.Group;
   private endDragPoint: IPoint;
   private foodLabel: Phaser.Text;
   private isDraggingMap = false;
@@ -86,6 +94,10 @@ export class Game extends Phaser.State {
     }
   }
 
+  private clickBuildBtn(button: Phaser.Button) {
+    console.log(button);
+  }
+
   private initGui() {
     const style = {
       fill: '#fff',
@@ -111,6 +123,17 @@ export class Game extends Phaser.State {
     jobsIcon.fixedToCamera = true;
     this.jobsLabel = this.add.text(315, 15, '0', style);
     this.jobsLabel.fixedToCamera = true;
+
+    const buttonData: IButtonData[] = JSON.parse(this.cache.getText('buttonData'));
+    this.buttons = this.add.group();
+
+    buttonData.forEach((element: IButtonData, index) => {
+      const button = new Phaser.Button(this.game, this.game.width - 60 * (index + 1), this.game.height - 60,
+        element.btnAsset, this.clickBuildBtn);
+      button.fixedToCamera = true;
+      this.buttons.add(button);
+      button.data = element;
+    });
 
     this.refreshStats();
   }
