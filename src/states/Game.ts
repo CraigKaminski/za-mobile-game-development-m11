@@ -5,6 +5,10 @@ const Step = 2;
 
 export class Game extends Phaser.State {
   private buildings: Phaser.Group;
+  private foodLabel: Phaser.Text;
+  private jobsLabel: Phaser.Text;
+  private moneyLabel: Phaser.Text;
+  private populationLabel: Phaser.Text;
   private simulationTimer: Phaser.TimerEvent;
   private town: TownModel;
 
@@ -43,9 +47,50 @@ export class Game extends Phaser.State {
     );
 
     this.simulationTimer = this.time.events.loop(Phaser.Timer.SECOND * Step, this.simulationStep, this);
+
+    this.initGui();
+  }
+
+  private initGui() {
+    const style = {
+      fill: '#fff',
+      font: '14px Arial',
+    };
+
+    const moneyIcon = this.add.sprite(10, 10, 'money');
+    moneyIcon.fixedToCamera = true;
+    this.moneyLabel = this.add.text(45, 15, '0', style);
+    this.moneyLabel.fixedToCamera = true;
+
+    const foodIcon = this.add.sprite(100, 10, 'food');
+    foodIcon.fixedToCamera = true;
+    this.foodLabel = this.add.text(145, 15, '0', style);
+    this.foodLabel.fixedToCamera = true;
+
+    const populationIcon = this.add.sprite(190, 10, 'population');
+    populationIcon.fixedToCamera = true;
+    this.populationLabel = this.add.text(225, 15, '0', style);
+    this.populationLabel.fixedToCamera = true;
+
+    const jobsIcon = this.add.sprite(280, 10, 'jobs');
+    jobsIcon.fixedToCamera = true;
+    this.jobsLabel = this.add.text(315, 15, '0', style);
+    this.jobsLabel.fixedToCamera = true;
+
+    this.refreshStats();
+  }
+
+  private refreshStats() {
+    const {food, housing, jobs, money, population} = this.town.stats;
+
+    this.moneyLabel.text = `${Math.round(money)}`;
+    this.foodLabel.text = `${Math.round(food)}`;
+    this.populationLabel.text = `${Math.round(population)}/${Math.round(housing)}`;
+    this.jobsLabel.text = `${Math.round(jobs)}`;
   }
 
   private simulationStep() {
     this.town.step();
+    this.refreshStats();
   }
 }
