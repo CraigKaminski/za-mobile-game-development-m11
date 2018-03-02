@@ -20,11 +20,15 @@ export class Game extends Phaser.State {
   private buttons: Phaser.Group;
   private endDragPoint: IPoint;
   private foodLabel: Phaser.Text;
+  private isBuildingBtnActive = false;
+  private isDraggingBuilding = false;
   private isDraggingMap = false;
   private isDraggingMapBlocked = false;
   private jobsLabel: Phaser.Text;
   private moneyLabel: Phaser.Text;
   private populationLabel: Phaser.Text;
+  private selectedBuilding: IButtonData;
+  private shadowBuilding: Phaser.Sprite;
   private simulationTimer: Phaser.TimerEvent;
   private startDragPoint: IPoint;
   private town: TownModel;
@@ -92,10 +96,70 @@ export class Game extends Phaser.State {
         }
       }
     }
+
+    if (this.isBuildingBtnActive && this.input.activePointer.isDown) {
+      this.isDraggingMapBlocked = true;
+      this.isDraggingBuilding = true;
+    }
+
+    if (this.isDraggingBuilding) {
+      const pointerWX = this.input.activePointer.worldX;
+      const pointerWY = this.input.activePointer.worldY;
+
+      if (!this.shadowBuilding || !this.shadowBuilding.alive) {
+        this.shadowBuilding = this.add.sprite(pointerWX, pointerWY, this.selectedBuilding.asset);
+        this.shadowBuilding.alpha = 0.5;
+        this.shadowBuilding.anchor.setTo(0.5);
+        this.physics.arcade.enable(this.shadowBuilding);
+      }
+
+      this.shadowBuilding.x = pointerWX;
+      this.shadowBuilding.y = pointerWY;
+    }
+
+    if (this.isDraggingBuilding && this.input.activePointer.isUp) {
+      if (this.canBuild()) {
+        this.town.stats.money -= this.selectedBuilding.cost;
+        this.createBuilding(this.input.activePointer.worldX, this.input.activePointer.worldY, this.selectedBuilding);
+      }
+
+      this.clearSelection();
+    }
+  }
+
+  private canBuild() {
+    return !this.game.physics.arcade.overlap(this.shadowBuilding, this.buildings);
+  }
+
+  private clearSelection() {
+    this.isDraggingMapBlocked = false;
+    this.isDraggingMap = false;
+    this.isBuildingBtnActive = false;
+    // this.selectedBuilding = undefined;
+    this.isDraggingBuilding = false;
+
+    if (this.shadowBuilding) {
+      this.shadowBuilding.kill();
+    }
+
+    this.refreshStats();
+
+    this.buttons.setAll('alpha', 1);
   }
 
   private clickBuildBtn(button: Phaser.Button) {
-    console.log(button);
+    this.clearSelection();
+
+    if (this.town.stats.money >= button.data.cost) {
+      button.alpha = 0.5;
+      this.selectedBuilding = button.data;
+      this.isBuildingBtnActive = true;
+    }
+  }
+
+  private createBuilding(x: number, y: number, data: IButtonData) {
+    const newBuilding = new Building(this, x, y, data);
+    this.buildings.add(newBuilding);
   }
 
   private initGui() {
@@ -129,7 +193,7 @@ export class Game extends Phaser.State {
 
     buttonData.forEach((element: IButtonData, index) => {
       const button = new Phaser.Button(this.game, this.game.width - 60 * (index + 1), this.game.height - 60,
-        element.btnAsset, this.clickBuildBtn);
+        element.btnAsset, this.clickBuildBtn, this);
       button.fixedToCamera = true;
       this.buttons.add(button);
       button.data = element;
