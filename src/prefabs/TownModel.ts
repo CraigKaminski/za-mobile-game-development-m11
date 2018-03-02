@@ -21,14 +21,16 @@ const DefaultCoefs: ICoefs = {
 };
 
 export class TownModel {
+  public stats: IStats;
   private buildings: Phaser.Group;
   private coefs: ICoefs;
-  private stats: IStats;
 
   constructor(coefs: ICoefs = DefaultCoefs, initialStats: IStats, buildings: Phaser.Group) {
     this.buildings = buildings;
     this.coefs = { ...coefs };
     this.stats = { ...initialStats };
+
+    this.updateBuildingProduction();
   }
 
   public step() {
@@ -45,8 +47,6 @@ export class TownModel {
     }
 
     this.stats.money += Math.min(this.stats.population, this.stats.jobs) * this.coefs.productivityPerPerson;
-
-    console.log(this.stats);
   }
 
   private updateBuildingProduction() {
